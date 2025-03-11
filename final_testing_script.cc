@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <ctime>
 
 using namespace ns3;
 
@@ -17,6 +18,7 @@ NS_LOG_COMPONENT_DEFINE("BlueAqmExample");
 
 int main(int argc, char* argv[])
 {   
+    SeedManager::SetSeed(time(0));
     LogComponentEnable("BlueAqmExample", LOG_LEVEL_INFO);
     LogComponentEnable("BlueQueueDisc", LOG_LEVEL_INFO);
     uint32_t nLeaf = 10;
@@ -24,7 +26,9 @@ int main(int argc, char* argv[])
     bool modeBytes = false;
     uint32_t queueDiscLimitPackets = 1000;
     double minTh = 5;
+    double midTh = 10;
     double maxTh = 15;
+    double gamma = 0.5;
     uint32_t pktSize = 512;
     std::string appDataRate = "10Mbps";
     std::string queueDiscType = "RED";
@@ -218,7 +222,14 @@ int main(int argc, char* argv[])
             exit(1);
         }
     }
-    if (st.GetNDroppedPackets(BlueQueueDisc::FORCED_DROP) == 0 &&
+    else if(queueDiscType == "DSRED") {
+        if (st.GetNDroppedPackets(DsRedQueueDisc::UNFORCED_DROP) == 0)
+        {
+            std::cout << "There should be some unforced drops" << std::endl;
+            exit(1);
+        }
+    }
+    else if (st.GetNDroppedPackets(BlueQueueDisc::FORCED_DROP) == 0 &&
         st.GetNDroppedPackets(BlueQueueDisc::PROB_DROP) == 0)
     {
         std::cout << "There should be some drops (either forced or probabilistic)" << std::endl;
