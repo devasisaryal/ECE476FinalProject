@@ -48,6 +48,8 @@ int main(int argc, char* argv[])
     cmd.AddValue("modeBytes", "Set Queue disc mode to Packets (false) or bytes (true)", modeBytes);
     cmd.AddValue("redMinTh", "RED queue minimum threshold", minTh);
     cmd.AddValue("redMaxTh", "RED queue maximum threshold", maxTh);
+    cmd.AddValue("redMidTh", "RED queue medium threshold", midTh);
+    cmd.AddValue("gamma", "DSRED gamma value", gamma);
     // Add command-line values for BlueQueueDisc parameters
     cmd.AddValue("blueIncrement", "Increment value for BlueQueueDisc marking probability", blueIncrement);
     cmd.AddValue("blueDecrement", "Decrement value for BlueQueueDisc marking probability", blueDecrement);
@@ -88,13 +90,9 @@ int main(int argc, char* argv[])
         Config::SetDefault("ns3::RedQueueDisc::LinkBandwidth", StringValue(bottleNeckLinkBw));
         Config::SetDefault("ns3::RedQueueDisc::LinkDelay", StringValue(bottleNeckLinkDelay));
         Config::SetDefault("ns3::RedQueueDisc::MeanPktSize", UintegerValue(pktSize));
+        Config::SetDefault("ns3::DsRedQueueDisc::MidThreshold", DoubleValue(midTh));
+        Config::SetDefault("ns3::DsRedQueueDisc::Gamma", DoubleValue(gamma));
 
-        if (queueDiscType == "ARED")
-        {
-            // Turn on ARED
-            Config::SetDefault("ns3::RedQueueDisc::ARED", BooleanValue(true));
-            Config::SetDefault("ns3::RedQueueDisc::LInterm", DoubleValue(10.0));
-        }
     }
     else if (queueDiscType == "Blue")
     {
