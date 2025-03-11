@@ -5,6 +5,7 @@ build_lib(
     helper/traffic-control-helper.cc
     model/cobalt-queue-disc.cc
     model/codel-queue-disc.cc
+    model/dsred-queue-disc.cc
     model/fifo-queue-disc.cc
     model/fq-cobalt-queue-disc.cc
     model/fq-codel-queue-disc.cc
@@ -24,6 +25,7 @@ build_lib(
     helper/traffic-control-helper.h
     model/cobalt-queue-disc.h
     model/codel-queue-disc.h
+    model/dsred-queue-disc.h
     model/fifo-queue-disc.h
     model/fq-cobalt-queue-disc.h
     model/fq-codel-queue-disc.h

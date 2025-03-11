@@ -54,9 +54,9 @@ int main(int argc, char* argv[])
     cmd.AddValue("blueFreezeTime", "Freeze time before changing marking probability in BlueQueueDisc", blueFreezeTime);
     cmd.Parse(argc, argv);
 
-    if ((queueDiscType != "RED") && (queueDiscType != "ARED") && (queueDiscType != "Blue"))
+    if ((queueDiscType != "RED") && (queueDiscType != "DSRED") && (queueDiscType != "Blue"))
     {
-        std::cout << "Invalid queue disc type: Use --queueDiscType=RED or --queueDiscType=ARED or --queueDiscType=Blue"
+        std::cout << "Invalid queue disc type: Use --queueDiscType=RED or --queueDiscType=DSRED or --queueDiscType=Blue"
                   << std::endl;
         exit(1);
     }
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
 
     Config::SetDefault("ns3::DropTailQueue<Packet>::MaxSize",
                        StringValue(std::to_string(maxPackets) + "p"));
-    if (queueDiscType == "RED" || queueDiscType == "ARED") {
+    if (queueDiscType == "RED" || queueDiscType == "DSRED") {
         if (!modeBytes)
         {
             Config::SetDefault(
@@ -142,9 +142,13 @@ int main(int argc, char* argv[])
     TrafficControlHelper tchBottleneck;
     QueueDiscContainer queueDiscs;
 
-    if (queueDiscType == "RED" || queueDiscType == "ARED")
+    if (queueDiscType == "RED")
     {
         tchBottleneck.SetRootQueueDisc("ns3::RedQueueDisc");
+    }
+    else if (queueDiscType == "DSRED")
+    {
+        tchBottleneck.SetRootQueueDisc("ns3::DsRedQueueDisc");
     }
     else if (queueDiscType == "Blue")
     {
