@@ -43,6 +43,9 @@ public:
      */
     int64_t AssignStreams(int64_t stream);
 
+    // Getter for Marking Probability
+    double GetDropProbability() const;
+
 protected:
     /**
      * @brief Dispose of the object

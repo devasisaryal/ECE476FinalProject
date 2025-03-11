@@ -69,6 +69,12 @@ BlueQueueDisc::AssignStreams(int64_t stream)
     return 1;
 }
 
+double
+BlueQueueDisc::GetDropProbability() const
+{
+    return m_dropProb;
+}
+
 bool
 BlueQueueDisc::DoEnqueue(Ptr<QueueDiscItem> item)
 {
