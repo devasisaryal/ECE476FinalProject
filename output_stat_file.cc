@@ -50,6 +50,12 @@ CheckQueueSize(Ptr<QueueDisc> queue)
     fPlotQueueAvg.close();
 }
 
+
+/**
+ * Check the marking proability of BLUE and write it to an output file
+ *
+ * \param queue The BLUE queue to check.
+ */
 void
 CheckMarkingProbability(Ptr<QueueDisc> queue)
 {
@@ -68,11 +74,12 @@ CheckMarkingProbability(Ptr<QueueDisc> queue)
 
 
 
-
+/**
+ * Setup and run the simulation with configurable options which generate network and queue statisitics
+ *
+ * 
+ */
 int main(int argc, char* argv[]) {
-    // Setup simulation parameters and queue types
-    // [your existing code]
-
 
     // enable logging for the Blue class
     LogComponentEnable("BlueAqmExample", LOG_LEVEL_INFO);
