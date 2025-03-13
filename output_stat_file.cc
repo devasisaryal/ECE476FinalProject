@@ -37,10 +37,14 @@ CheckQueueSize(Ptr<QueueDisc> queue)
     // check queue size every 1/100 of a second
     Simulator::Schedule(Seconds(0.01), &CheckQueueSize, queue);
 
+
+// Write to instaneous queue size data file
     std::ofstream fPlotQueue(filePlotQueue.str(), std::ios::out | std::ios::app);
     fPlotQueue << Simulator::Now().GetSeconds() << " " << qSize << std::endl;
     fPlotQueue.close();
 
+    
+// Write to avg queue size data file
     std::ofstream fPlotQueueAvg(filePlotQueueAvg.str(), std::ios::out | std::ios::app);
     fPlotQueueAvg << Simulator::Now().GetSeconds() << " " << avgQueueSize / checkTimes << std::endl;
     fPlotQueueAvg.close();
@@ -56,6 +60,7 @@ CheckMarkingProbability(Ptr<QueueDisc> queue)
     Ptr<BlueQueueDisc> blueQueue = DynamicCast<BlueQueueDisc>(queue);
     double dropProbability = blueQueue->GetDropProbability();
 
+    // write to file that contains marking probability each 1/100 of a second
     std::ofstream fBlueMarkingProbability(fileBlueMarkingProbability.str(), std::ios::out | std::ios::app);
     fBlueMarkingProbability << Simulator::Now().GetSeconds() << " " << dropProbability << std::endl;
     fBlueMarkingProbability.close();
@@ -67,33 +72,41 @@ CheckMarkingProbability(Ptr<QueueDisc> queue)
 int main(int argc, char* argv[]) {
     // Setup simulation parameters and queue types
     // [your existing code]
-    
+
+
+    // enable logging for the Blue class
     LogComponentEnable("BlueAqmExample", LOG_LEVEL_INFO);
     LogComponentEnable("BlueQueueDisc", LOG_LEVEL_INFO);
+
+    // file paths
     std::string QueueStatsPathOut;
     std::string FlowMonitorPathOut;
     std::string BlueMarketProbPathOut;
-    uint32_t nLeaf = 10;
-    uint32_t maxPackets = 100;
-    bool modeBytes = false;
-    uint32_t queueDiscLimitPackets = 1000;
-    double minTh = 5;
-    double maxTh = 15;
+
+    // Default simulation parameters
+    uint32_t nLeaf = 10; 
+    uint32_t maxPackets = 100; // Max packets in device queue
+    bool modeBytes = false; //Queue mode: packets or bytes
+    uint32_t queueDiscLimitPackets = 1000; // Max packets in queue disc
+    double minTh = 5; // RED min
+    double maxTh = 15; // RED max
     uint32_t pktSize = 512;
     std::string appDataRate = "10Mbps";
-    std::string queueDiscType = "RED";
+    std::string queueDiscType = "RED"; // default queue discpline
     uint16_t port = 5001;
     std::string bottleNeckLinkBw = "1Mbps";
     std::string bottleNeckLinkDelay = "50ms";
-    double blueIncrement = 0.02;
-    double blueDecrement = 0.002;
-    double blueFreezeTime = 0.1;
+    double blueIncrement = 0.02; // d1
+    double blueDecrement = 0.002; // d2
+    double blueFreezeTime = 0.1; 
     double checkQueueInterval = 0.01; // Default value of 0.01 seconds
     double checkBlueProbMarkingInterval = 0.01; // Default value of 0.01 seconds
-    // Will only save in the directory if enable opts below
+  
     QueueStatsPathOut = "."; // Current directory
     FlowMonitorPathOut = "."; // Current Directory
-    BlueMarketProbPathOut = '.';
+    BlueMarketProbPathOut = '.'; //curent directory
+
+    // Command-line argument parsing
     CommandLine cmd(__FILE__);
     cmd.AddValue("nLeaf", "Number of left and right side leaf nodes", nLeaf);
     cmd.AddValue("maxPackets", "Max Packets allowed in the device queue", maxPackets);
@@ -106,7 +119,6 @@ int main(int argc, char* argv[]) {
     cmd.AddValue("modeBytes", "Set Queue disc mode to Packets (false) or bytes (true)", modeBytes);
     cmd.AddValue("redMinTh", "RED queue minimum threshold", minTh);
     cmd.AddValue("redMaxTh", "RED queue maximum threshold", maxTh);
-     // Add command-line values for BlueQueueDisc parameters
     cmd.AddValue("blueIncrement", "Increment value for BlueQueueDisc marking probability", blueIncrement);
     cmd.AddValue("blueDecrement", "Decrement value for BlueQueueDisc marking probability", blueDecrement);
     cmd.AddValue("blueFreezeTime", "Freeze time before changing marking probability in BlueQueueDisc", blueFreezeTime);
@@ -120,6 +132,8 @@ int main(int argc, char* argv[]) {
      // Enable debug logs
     //LogComponentEnableAll(LOG_LEVEL_INFO);  // Add this line
 
+
+// Validate queue disc type
     if ((queueDiscType != "RED") && (queueDiscType != "ARED") && (queueDiscType != "Blue"))
     {
         std::cout << "Invalid queue disc type: Use --queueDiscType=RED or --queueDiscType=ARED or --queueDiscType=Blue"
@@ -127,12 +141,13 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
+    // Configure default settings for applications and queues
     Config::SetDefault("ns3::OnOffApplication::PacketSize", UintegerValue(pktSize));
     Config::SetDefault("ns3::OnOffApplication::DataRate", StringValue(appDataRate));
-
     Config::SetDefault("ns3::DropTailQueue<Packet>::MaxSize",
                        StringValue(std::to_string(maxPackets) + "p"));
-
+    
+    // Configure queue disciplines
     if (queueDiscType == "RED" || queueDiscType == "ARED") {
         if (!modeBytes)
         {
@@ -147,7 +162,6 @@ int main(int argc, char* argv[]) {
                 QueueSizeValue(QueueSize(QueueSizeUnit::BYTES, queueDiscLimitPackets * pktSize)));
             minTh *= pktSize;
             maxTh *= pktSize;
-            // add blue logic that corresponds to this condition with bytes
         }    
     
         Config::SetDefault("ns3::RedQueueDisc::MinTh", DoubleValue(minTh));
@@ -184,6 +198,7 @@ int main(int argc, char* argv[]) {
         Config::SetDefault("ns3::BlueQueueDisc::FreezeTime", TimeValue(Seconds(blueFreezeTime)));
     }
 
+    // Configure network topology
     PointToPointHelper bottleNeckLink;
     bottleNeckLink.SetDeviceAttribute("DataRate", StringValue(bottleNeckLinkBw));
     bottleNeckLink.SetChannelAttribute("Delay", StringValue(bottleNeckLinkDelay));
@@ -194,6 +209,7 @@ int main(int argc, char* argv[]) {
 
     PointToPointDumbbellHelper d(nLeaf, pointToPointLeaf, nLeaf, pointToPointLeaf, bottleNeckLink);
 
+     // Install Internet stack
     InternetStackHelper stack;
     for (uint32_t i = 0; i < d.LeftCount(); ++i)
     {
@@ -207,6 +223,7 @@ int main(int argc, char* argv[]) {
     stack.Install(d.GetLeft());
     stack.Install(d.GetRight());
 
+    // Configure Traffic Control Helper
     TrafficControlHelper tchBottleneck;
     QueueDiscContainer queueDiscs;
 
@@ -220,13 +237,14 @@ int main(int argc, char* argv[]) {
     }
     tchBottleneck.Install(d.GetLeft()->GetDevice(0));
     queueDiscs = tchBottleneck.Install(d.GetRight()->GetDevice(0));
-    //queueDiscs = tchBottleneck.Install(d.GetLeft()->GetDevice(0));
 
-
+    // assign IP addresses
     d.AssignIpv4Addresses(Ipv4AddressHelper("10.1.1.0", "255.255.255.0"),
                           Ipv4AddressHelper("10.2.1.0", "255.255.255.0"),
                           Ipv4AddressHelper("10.3.1.0", "255.255.255.0"));
 
+
+     // Configure applications (OnOff traffic generator and packet sink)
     OnOffHelper clientHelper("ns3::TcpSocketFactory", Address());
     clientHelper.SetAttribute("OnTime", StringValue("ns3::UniformRandomVariable[Min=0.|Max=1.]"));
     clientHelper.SetAttribute("OffTime", StringValue("ns3::UniformRandomVariable[Min=0.|Max=1.]"));
@@ -252,7 +270,7 @@ int main(int argc, char* argv[]) {
 
     Ipv4GlobalRoutingHelper::PopulateRoutingTables();
     
-
+    // set paths 
     filePlotQueue << QueueStatsPathOut << "/"
                     << "queue_size.plotme";
     filePlotQueueAvg << QueueStatsPathOut << "/"
@@ -260,6 +278,8 @@ int main(int argc, char* argv[]) {
     fileBlueMarkingProbability << BlueMarketProbPathOut << "/"
                     << "Blue_marking_prob.plotme";
 
+
+    // add update of inst/avg queue size
     Ptr<QueueDisc> queue = queueDiscs.Get(0);
     Simulator::ScheduleNow(&CheckQueueSize, queue);
     // Use DynamicCast to check if it's a BlueQueueDisc
@@ -267,7 +287,7 @@ int main(int argc, char* argv[]) {
     if (blueQueue != nullptr)  // Ensure the cast is valid
     {
         NS_LOG_INFO("The queue is a BlueQueueDisc.");
-        Simulator::ScheduleNow(&CheckMarkingProbability, queue);
+        Simulator::ScheduleNow(&CheckMarkingProbability, queue); // Add marking probability at specific timestamp to file
         
     }
     else
@@ -275,7 +295,7 @@ int main(int argc, char* argv[]) {
         NS_LOG_WARN("The queue is NOT a BlueQueueDisc.");
     }
         
-    
+    // Setup flow monitor
     FlowMonitorHelper flowmon;
     Ptr<FlowMonitor> monitor = flowmon.InstallAll();
 
@@ -284,8 +304,10 @@ int main(int argc, char* argv[]) {
     // Start simulation
     Simulator::Run();
    
+    // Grab queue stats
     QueueDisc::Stats st = queueDiscs.Get(0)->GetStats();
 
+    // Depending queue dispcline, change logging output slightly but display dropped packets
     if (queueDiscType == "RED" || queueDiscType == "ARED"){
         if (st.GetNDroppedPackets(RedQueueDisc::UNFORCED_DROP) == 0)
         {
@@ -322,6 +344,8 @@ int main(int argc, char* argv[]) {
 
     }
     */
+   
+    // output flow monitor data to file
     std::stringstream stmp;
     stmp << FlowMonitorPathOut << "/queue.flowmon";
     monitor->SerializeToXmlFile(stmp.str(), false, false);
