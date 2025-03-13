@@ -6,10 +6,16 @@
 
 namespace ns3 {
 
+// Define the logging component for BlueQueueDisc
 NS_LOG_COMPONENT_DEFINE("BlueQueueDisc");
 
+// Ensure BlueQueueDisc is registered as an ns-3 object
 NS_OBJECT_ENSURE_REGISTERED(BlueQueueDisc);
 
+/**
+ * Get the TypeId of the BlueQueueDisc class.
+ * This function registers attributes and parent classes for ns-3 object model.
+ */
 TypeId
 BlueQueueDisc::GetTypeId()
 {
@@ -41,6 +47,10 @@ BlueQueueDisc::GetTypeId()
     return tid;
 }
 
+/**
+ * Constructor for BlueQueueDisc.
+ * Initializes the random variable generator for probability calculations.
+ */
 BlueQueueDisc::BlueQueueDisc()
     : QueueDisc(QueueDiscSizePolicy::SINGLE_INTERNAL_QUEUE)
 {
@@ -48,11 +58,17 @@ BlueQueueDisc::BlueQueueDisc()
     m_uv = CreateObject<UniformRandomVariable>();
 }
 
+/**
+ * Destructor for BlueQueueDisc.
+ */
 BlueQueueDisc::~BlueQueueDisc()
 {
     NS_LOG_FUNCTION(this);
 }
 
+/**
+ * Dispose of the BlueQueueDisc object, freeing allocated resources.
+ */
 void
 BlueQueueDisc::DoDispose()
 {
@@ -61,6 +77,9 @@ BlueQueueDisc::DoDispose()
     QueueDisc::DoDispose();
 }
 
+/**
+ * Assign a random stream number to the uniform random variable.
+ */
 int64_t
 BlueQueueDisc::AssignStreams(int64_t stream)
 {
@@ -69,12 +88,19 @@ BlueQueueDisc::AssignStreams(int64_t stream)
     return 1;
 }
 
+/**
+ * Get the current drop probability of the queue.
+ */
 double
 BlueQueueDisc::GetDropProbability() const
 {
     return m_dropProb;
 }
 
+/**
+ * Enqueue a packet into the queue.
+ * If the queue is full, it updates the drop probability and may drop the packet.
+ */
 bool
 BlueQueueDisc::DoEnqueue(Ptr<QueueDiscItem> item)
 {
@@ -103,6 +129,9 @@ BlueQueueDisc::DoEnqueue(Ptr<QueueDiscItem> item)
     return retval;
 }
 
+/**
+ * Initialize the BLUE algorithm parameters.
+ */
 void
 BlueQueueDisc::InitializeParams()
 {
@@ -113,6 +142,9 @@ BlueQueueDisc::InitializeParams()
     m_lastUpdate = NanoSeconds(0);
 }
 
+/**
+ * Update the drop probability based on queue conditions (overflow or underflow).
+ */
 void
 BlueQueueDisc::UpdateDropProb(bool overflow)
 {
@@ -145,6 +177,9 @@ BlueQueueDisc::UpdateDropProb(bool overflow)
     NS_LOG_DEBUG("Updated drop probability: " << m_dropProb);
 }
 
+/**
+ * Dequeue a packet from the queue.
+ */
 Ptr<QueueDiscItem>
 BlueQueueDisc::DoDequeue()
 {
@@ -165,6 +200,9 @@ BlueQueueDisc::DoDequeue()
     return item;
 }
 
+/**
+ * Peek at the next packet in the queue without dequeuing it.
+ */
 Ptr<const QueueDiscItem>
 BlueQueueDisc::DoPeek()
 {
@@ -182,6 +220,9 @@ BlueQueueDisc::DoPeek()
     return item;
 }
 
+/**
+ * Check the queue configuration and ensure it has the correct structure.
+ */
 bool
 BlueQueueDisc::CheckConfig()
 {
